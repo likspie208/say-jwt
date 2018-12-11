@@ -25,4 +25,4 @@ app.get('/', (req, res) => res.send('TODO: use OKTA for authorization'));
 
 app.listen(port, () => {
   console.log(`app listening on port ${port}`);
-})
+});
