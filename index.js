@@ -22,7 +22,7 @@ app.use(session({
 }));
 app.use(oidc.router);
 
-app.get('/create', (req, res) => {
+app.get('/create', oidc.ensureAuthenticated(), (req, res) => {
   const authToken = req.headers.authorization;
   if (authToken !== 'Basic QXp1cmVEaWFtb25kOmh1bnRlcjI=') {
     res.set('WWW-Authenticate', 'Basic realm="401"');
@@ -36,7 +36,7 @@ app.get('/create', (req, res) => {
   res.send(token.compact());
 });
 
-app.get('/verify/:token', (req, res) => {
+app.get('/verify/:token', oidc.ensureAuthenticated(), (req, res) => {
   const { token } = req.params;
   jwt.verify(token, 'top-secret-phrase-aka-secret-key',
     (err, verifiedJwt) => {
