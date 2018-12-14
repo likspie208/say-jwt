@@ -1,11 +1,26 @@
 
-
-
-
+require('dotenv').config();
 const express = require('express');
+const session = require('express-session');
+const { ExpressOIDC } = require('@okta/oidc-middleware')
+
 const app = express();
 const port = process.env.PORT || 3000;
 const jwt = require('njwt');
+
+const oidc = new ExpressOIDC({
+  issuer: `${process.env.OKTA_ORG_URL}/oauth2/default`,
+  client_id: process.env.OKTA_CLIENT_ID,
+  client_secret: process.env.OKTA_CLIENT_SECRET,
+  redirect_uri: `${process.env.HOST_URL}/authorization-code/callback`,
+  scope: 'openid profile'
+});
+app.use(session({
+  secret: process.env.APP_SECRET,
+  resave: true,
+  saveUninitialized: false
+}));
+app.use(oidc.router);
 
 app.get('/create', (req, res) => {
   const authToken = req.headers.authorization;
@@ -31,10 +46,12 @@ app.get('/verify/:token', (req, res) => {
       else {
         res.send(verifiedJwt);
       }
-    })
+    });
 });
 
-app.get('/', (req, res) => res.send('TODO: use OKTA for authorization'));
+app.get('/', oidc.ensureAuthenticated(), (req, res) => {
+  res.send('hola chef !');
+});
 
 app.listen(port, () => {
   console.log(`app listening on port ${port}`);
